@@ -1,0 +1,23 @@
+#!/usr/bin/with-contenv bash
+
+# This is an install script that is designed to run after init-mods-package-install
+# so it can take advantage of packages installed
+# init-mods-end depends on this script so that later init and services wait until this script exits
+
+if [ ! -d "/config/Library/Application Support/Plex Media Server" ]; then
+    echo "**** Creating Plug-ins folder ****"
+    mkdir -p "/config/Library/Application Support/Plex Media Server/Plug-ins"
+    lsiown -R abc:abc "/config/Library/Application Support/Plex Media Server"
+fi
+
+plugindir="/config/Library/Application Support/Plex Media Server/Plug-ins"
+
+# clone or update XBMCnfoTVImporter.bundle repo
+if [ ! -d "$plugindir/XBMCnfoTVImporter.bundle" ]; then
+    echo "**** XBMCnfoTVImporter plugin not found ****"
+    s6-setuidgid abc git clone --depth 1 https://github.com/gboudreau/XBMCnfoTVImporter.bundle "$plugindir/XBMCnfoTVImporter.bundle"
+else
+    echo "**** pulling latest update ****"
+    s6-setuidgid abc git -C "$plugindir/XBMCnfoTVImporter.bundle" pull
+fi
+lsiown -R abc:abc "$plugindir/XBMCnfoTVImporter.bundle"
